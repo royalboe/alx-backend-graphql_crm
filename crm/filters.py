@@ -1,9 +1,10 @@
 import django_filters as filters
+import django_filters
 from django.db.models import Sum
 from .models import Customer, Product, Order
 
 
-class CustomerFilter(filters.FilterSet):
+class CustomerFilter(django_filters.FilterSet):
     name = filters.CharFilter(field_name="name", lookup_expr="icontains")
     email = filters.CharFilter(field_name="email", lookup_expr="icontains")
 
