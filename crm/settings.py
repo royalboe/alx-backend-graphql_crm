@@ -124,3 +124,15 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+GRAPHENE = {
+    "SCHEMA": "alx_backend_graphql_crm.schema.schema"
+}
+
+CRONJOBS = [
+    # Heartbeat logger (already exists)
+    ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'),
+
+    # Low-stock update every 12 hours
+    ('0 */12 * * *', 'crm.cron.update_low_stock'),
+]
