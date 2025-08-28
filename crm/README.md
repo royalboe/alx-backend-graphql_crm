@@ -33,6 +33,7 @@ celery -A crm beat -l info
 ## Verify Report
 
 Check logs in:
+
 ```bash
 cat /tmp/crm_report_log.txt
 ```
