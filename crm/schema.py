@@ -6,7 +6,9 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from crm.models import Customer, Product, Order
+from crm.models import Customer
+from crm.models import Product
+from crm.models import Order
 from .filters import CustomerFilter, ProductFilter, OrderFilter
 
 
