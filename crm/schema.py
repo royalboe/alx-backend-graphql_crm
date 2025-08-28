@@ -1,6 +1,14 @@
 import graphene
+import re
+from graphene_django.filter import DjangoFilterConnectionField
+from graphene_django import DjangoObjectType
+from django.db import transaction
+from django.core.exceptions import ValidationError
+from django.utils import timezone
 
-import graphene
+from .models import Customer, Product, Order
+from .filters import CustomerFilter, ProductFilter, OrderFilter
+
 
 class Query(graphene.ObjectType):
     # Example field
@@ -12,13 +20,6 @@ class Mutation(graphene.ObjectType):
 
     def resolve_say_hello(root, info, name):
         return f"Hello {name}"
-
-
-
-from graphene_django import DjangoObjectType
-from .models import Customer, Product, Order
-from django.db import transaction
-from django.core.exceptions import ValidationError
 
 class CustomerType(DjangoObjectType):
     class Meta:
@@ -151,14 +152,6 @@ class Mutation(graphene.ObjectType):
     create_order = CreateOrder.Field()
 
 
-
-from django.utils import timezone
-from .models import Customer, Product, Order
-import re
-
-# -------------------------------
-# GraphQL Types
-# -------------------------------
 class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
@@ -336,12 +329,6 @@ class Mutation(graphene.ObjectType):
     create_product = CreateProduct.Field()
     create_order = CreateOrder.Field()
 
-
-from graphene_django.filter import DjangoFilterConnectionField
-from .models import Customer, Product, Order
-from .filters import CustomerFilter, ProductFilter, OrderFilter
-from .schema_mutations import Mutation  # Assuming i moved Task 2 mutations to schema_mutations.py
-
 # Node-based types for filtering & pagination
 class CustomerNode(DjangoObjectType):
     class Meta:
@@ -394,3 +381,39 @@ class Query(graphene.ObjectType):
         if order_by:
             qs = qs.order_by(*order_by)
         return qs
+    
+
+class UpdateLowStockProducts(graphene.Mutation):
+    class Arguments:
+        pass  # no arguments needed
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    updated_products = graphene.List(ProductType)
+
+    @classmethod
+    def mutate(cls, root, info):
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        updated = []
+
+        for product in low_stock_products:
+            product.stock += 10  # simulate restock
+            product.save()
+            updated.append(product)
+
+        if updated:
+            return UpdateLowStockProducts(
+                success=True,
+                message=f"{len(updated)} products updated at {timezone.now()}",
+                updated_products=updated,
+            )
+        else:
+            return UpdateLowStockProducts(
+                success=True,
+                message="No low-stock products found",
+                updated_products=[]
+            )
+
+
+class Mutation(graphene.ObjectType):
+    update_low_stock_products = UpdateLowStockProducts.Field()
